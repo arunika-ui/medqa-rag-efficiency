@@ -1,0 +1,17 @@
+corpus 13-grams: 13310468
+{
+ "dev": {
+  "n": 1272,
+  "any_13gram_hit": 0,
+  "over_20pct": 0,
+  "over_50pct": 0,
+  "mean_overlap": 0.0
+ },
+ "test": {
+  "n": 1273,
+  "any_13gram_hit": 0,
+  "over_20pct": 0,
+  "over_50pct": 0,
+  "mean_overlap": 0.0
+ }
+}

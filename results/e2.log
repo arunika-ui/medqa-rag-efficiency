@@ -1,0 +1,46 @@
+c256 embedding trained 18.0 s
+c256 Flat (exact) - 1.0 2.835
+c256 HNSW M=16 efSearch=16 0.823 0.034
+c256 HNSW M=16 efSearch=32 0.911 0.054
+c256 HNSW M=16 efSearch=64 0.961 0.091
+c256 HNSW M=16 efSearch=128 0.989 0.16
+c256 HNSW M=32 efSearch=16 0.836 0.041
+c256 HNSW M=32 efSearch=32 0.918 0.061
+c256 HNSW M=32 efSearch=64 0.965 0.105
+c256 HNSW M=32 efSearch=128 0.989 0.187
+c256 IVF nlist=1106 nprobe=1 0.378 0.033
+c256 IVF nlist=1106 nprobe=4 0.683 0.048
+c256 IVF nlist=1106 nprobe=16 0.871 0.101
+c256 IVF nlist=1106 nprobe=64 0.944 0.27
+c256 IVF-PQ nlist=1106 m=32 nprobe=4 0.494 0.038
+c256 IVF-PQ nlist=1106 m=32 nprobe=16 0.54 0.054
+c256 IVF-PQ nlist=1106 m=32 nprobe=64 0.547 0.123
+c256 normalised cosine 1.0
+c256 normalised inner_product 1.0
+c256 normalised L2 1.0
+c256 unnormalised cosine 1.0
+c256 unnormalised inner_product 0.37
+c256 unnormalised L2 0.258
+c512 embedding trained 16.1 s
+c512 Flat (exact) - 1.0 1.431
+c512 HNSW M=16 efSearch=16 0.85 0.028
+c512 HNSW M=16 efSearch=32 0.923 0.042
+c512 HNSW M=16 efSearch=64 0.965 0.068
+c512 HNSW M=16 efSearch=128 0.986 0.129
+c512 HNSW M=32 efSearch=16 0.87 0.033
+c512 HNSW M=32 efSearch=32 0.939 0.05
+c512 HNSW M=32 efSearch=64 0.972 0.081
+c512 HNSW M=32 efSearch=128 0.989 0.143
+c512 IVF nlist=782 nprobe=1 0.435 0.026
+c512 IVF nlist=782 nprobe=4 0.762 0.034
+c512 IVF nlist=782 nprobe=16 0.918 0.071
+c512 IVF nlist=782 nprobe=64 0.978 0.174
+c512 IVF-PQ nlist=782 m=32 nprobe=4 0.562 0.035
+c512 IVF-PQ nlist=782 m=32 nprobe=16 0.603 0.046
+c512 IVF-PQ nlist=782 m=32 nprobe=64 0.608 0.099
+c512 normalised cosine 1.0
+c512 normalised inner_product 1.0
+c512 normalised L2 1.0
+c512 unnormalised cosine 1.0
+c512 unnormalised inner_product 0.466
+c512 unnormalised L2 0.175

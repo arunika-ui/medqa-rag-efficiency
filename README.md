@@ -1,104 +1,132 @@
 # Does Retrieval Configuration Matter for Medical QA?
 
-**A controlled retrieval-stage study of RAG on MedQA-USMLE**
+**A controlled study of the retrieval stage of RAG on MedQA-USMLE**
 
-Code for the paper by **Arunika Jain** (Manipal University Jaipur), submitted to **IEEE NICE–TEAS ASIA 2026**.
+Arunika Jain, Ishanika Singh, Vijay Hasanpuri · Manipal University Jaipur
+Submitted to **IEEE NICE–TEAS ASIA 2026** (under review)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
 ![FAISS](https://img.shields.io/badge/FAISS-0467DF)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white)
-![tests](https://github.com/arunika-ui/medqa-rag-efficiency/actions/workflows/tests.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-## Summary
+## What this is
 
-Studies that compare retrieval-augmented generation (RAG) setups usually score answers by *semantic
-similarity* to a reference, and rarely test whether retrieval found useful evidence. This project
-**isolates the retrieval stage** of medical RAG and measures it with objective ground truth on
-MedQA-USMLE (4-option, chance = 25%).
+Retrieval-augmented generation (RAG) answers a question by first searching a document collection. This
+project studies that **search step** for medical question answering. It asks how chunk size, search method,
+query wording, index type and the amount of text kept affect whether the retrieved textbook passages
+actually help answer a question.
 
-Across the 18 English MedQA textbooks, it varies **chunk size, query formulation, BM25 parameters, a dense
-LSA retriever, FAISS index type, similarity metric, top-K, score-based compression, rank fusion and
-per-option retrieval**. Every configuration is scored by a **parameter-free evidence-only answer selector**,
-compared with a **random-context control**, selected on the dev set only, and run **once** on the 1,273
-test questions.
+## Key idea
 
-### Key findings (as reported in the paper)
+Earlier comparisons judged answers by how *similar* they sound to a reference answer. Here every question
+is a real **4-option USMLE exam question**, so each answer is simply right or wrong. A simple, **non-AI
+evidence reader** picks the option best supported by the retrieved passages, so the results measure the
+search alone. A **random-passages control** shows whether retrieval helps beyond just adding text.
 
-| Finding | Number |
+## Data
+
+| | |
 | --- | --- |
-| Retrieval beats random context **only when the answer options enter the query** | 31.2% vs. 25.6% (Holm p = 0.017) |
-| Question-only retrieval | 27.1%, not better than the control |
-| Hybrid fusion, compression, score weighting vs. plain BM25 | no significant gain; multi-query fusion is worse (p = 0.03) |
-| Score-based compression | removes **60%** of context at unchanged accuracy |
-| HNSW vs. exact search | same quality at **~18× lower latency** |
-| Graded relevance (398 chunks) | a directly supporting passage exists for only **47%** of questions |
-| String-match retrieval proxies vs. graded labels | agree only **75%** of the time |
+| Questions | MedQA-USMLE, 4-option: **1,272 dev** (all setting choices) and **1,273 test** (run once at the end) |
+| Corpus | 18 English medical textbooks, **12.9M words**, cut into ~38k chunks of ~512 tokens |
+| Leakage audit | 13-gram check of every dev and test question against the textbooks: **0 matches** |
 
-**Conclusion:** retrieval *coverage*, not retriever sophistication, is the binding constraint.
+## Main results
 
-## Method
+Test set, n = 1,273, chance = 25%. Full table: [`results/main_table.txt`](results/main_table.txt).
 
-| Paper section | What | Code |
+| Configuration | Test accuracy | vs. random passages (Holm) |
 | --- | --- | --- |
-| III | MedQA-USMLE 4-option (1,272 dev / 1,273 test), 18 textbooks, **13-gram leakage audit** | `data.py`, `leakage.py` |
-| IV-A | Sliding windows of 192 / 384 / 768 words (12.5% overlap); Okapi BM25 (k1 = 1.5, b = 0.75) and LSA (TF-IDF → 256-d SVD); queries: q, q+opts, MetaMap+opts, last sentence+opts | `data.py`, `retrieval.py` |
-| IV-B | FAISS Flat, HNSW, IVF-Flat, IVF-PQ; cosine vs. inner product vs. L2, with and without normalisation | `retrieval.py`, `experiments.py` |
-| IV-C | Evidence-only answer selector (Eq. 1) with seeded tie-breaking | `selector.py` |
-| IV-D | Baselines (random, longest option, corpus-frequency prior, random-context control); top-K, compression, RRF fusion, per-option retrieval, equal-budget chunk sizes; 2,000-sample bootstrap CIs, exact McNemar tests, Holm correction | `selector.py`, `stats.py`, `experiments.py` |
+| Random passages (control) | 25.6% | — |
+| BM25, question only | 27.1% | p = 1.0, no better than the control |
+| BM25, question + answer options | **31.2%** | p = 0.017 |
+| BM25, MetaMap phrases + options | 32.4% | p = 0.002 |
+| Hybrid BM25 + LSA fusion | 32.1% | p = 0.004 |
+| Per-option scoring (each option scored with its own search) | **33.9%** | p < 0.001 |
 
-The answer selector (Eq. 1): for each option *o*, with *T(o)* its tokens not shared by all four options,
+- **Putting the answer options into the search** is the change that makes retrieval useful.
+- **Hybrid search and multi-query fusion** did not beat plain BM25; multi-query fusion was worse (28.7%, p = 0.03).
+- **Dropping the weakest 60%** of retrieved text cost no accuracy.
+- **HNSW** index: about **18× faster** than exact search with almost no loss; **IVF-PQ** is **15× smaller**.
+- **Coverage is the limit.** On 60 hand-checked dev questions, even three search methods combined found a
+  passage that fully supports the answer for under half of them.
 
+![Test accuracy](figures/fig1_test_accuracy.png)
+
+| Context budget | Index trade-off |
+| --- | --- |
+| ![](figures/fig2_context_budget.png) | ![](figures/fig3_index_tradeoff.png) |
+
+## Repository structure
+
+| File | Purpose |
+| --- | --- |
+| `lib.py` | Shared helpers: data loading, metrics, statistical tests (McNemar, bootstrap) |
+| `bm25.py` | BM25 implementation |
+| `prep.py` | Cuts the textbooks into chunks (256 / 512 / 1,024-token windows) |
+| `leakage.py` | 13-gram audit: checks no exam question is copied into the textbooks |
+| `exp1_sparse.py` | BM25 experiments: query wording, chunk size, k1 × b parameter grid |
+| `exp2_dense_index.py` | LSA dense retrieval, FAISS index comparison (Flat, HNSW, IVF, IVF-PQ), similarity metrics |
+| `exp3_answer.py` | End-to-end accuracy with the evidence reader, all configurations, dev and test |
+| `analyze.py` | Main results table and significance tests |
+| `analyze_labels.py` | Relevance-label metrics (P@3, Hit@3, MRR, nDCG) |
+| `figures.py` | Paper figures |
+| `label/` | Relevance grades (`labels.txt`: question, chunk, grade 0/1/2) and which retriever returned each chunk (`meta.json`). The grading sheets are not included because they contain textbook text |
+| `results/` | All result CSV/JSON/log files (chunk IDs only, no textbook text) |
+| `RESULTS.md` | Written summary of every experiment |
+| `stage2_llm.py`, `analyze_stage2.py`, `stage2_colab.ipynb` | Next stage: a real LLM reader (Qwen2.5-3B on a free Colab GPU, or any OpenAI-compatible API). Implemented, not run yet |
+
+## Getting the data
+
+The questions and textbooks are **not included** in this repository; they are distributed under the
+MedQA research licence.
+
+1. Download MedQA from the official repository: **[github.com/jind11/MedQA](https://github.com/jind11/MedQA)**
+   (follow its link to `data_clean`).
+2. Point the code to it:
+
+```bash
+export MEDQA_DIR=/path/to/data_clean
 ```
-s(o) = Σ_k  w_k · Σ_{t ∈ T(o)} idf(t)·[t ∈ c_k]  /  Σ_{t ∈ T(o)} idf(t)
-```
 
-It has no parameters fitted to MedQA, so accuracy above the random-context control reflects what retrieval found.
+Never commit `data/`, chunk files or textbook text. The `.gitignore` excludes them.
 
-## Reproduction run
-
-The workflow in `.github/workflows/reproduce.yml` downloads the data, runs the full protocol and commits
-the results below. Data sources: questions from the BigBio mirror of MedQA (original US 4-option split
-with MetaMap phrases); textbooks rebuilt from the `MedRAG/textbooks` snippets of the same 18 books, with
-the splitter's overlaps removed. Small differences from the paper's numbers are expected from
-corpus-preparation details; the paper remains the reference.
-
-<!-- RESULTS:START -->
-_Results appear here after the first reproduction run._
-<!-- RESULTS:END -->
-
-| Test accuracy with 95% CIs | Accuracy vs. context size | FAISS speed–recall |
-| --- | --- | --- |
-| ![](results/fig_test_accuracy.png) | ![](results/fig_context.png) | ![](results/fig_faiss.png) |
-
-## Run it
+## How to run
 
 ```bash
 pip install -r requirements.txt
-PYTHONPATH=src python -m medqa_rag.experiments     # full protocol → results/
-pytest -q                                          # unit + end-to-end tests on a toy corpus
+export MEDQA_DIR=/path/to/data_clean
+
+python prep.py && python leakage.py
+python exp1_sparse.py && python exp2_dense_index.py
+python exp3_answer.py dev 1.5 0.75 && python exp3_answer.py test 1.5 0.75
+python analyze.py && python figures.py
 ```
 
-## Limitations
+Stage 2 (LLM reader): open `stage2_colab.ipynb` in Google Colab.
 
-The selector is lexical, so accuracies are a lower bound on the evidential value of retrieval, not RAG
-accuracy with an LLM. LSA stands in for neural encoders such as MedCPT. The graded relevance labels
-(60 dev questions, 398 chunks) come from one AI-assisted annotator and are not yet included in this
-repository. Latencies depend on hardware.
+## Status
 
-## Next stage
+- **Retrieval study:** complete.
+- **LLM stage:** implemented, not yet run.
+- **Paper:** under review.
 
-Already specified in the paper: an LLM reader under the same protocol, with closed-book and random-context
-baselines, BM25 and neural dense retrievers (bge-small, bge-base, MedCPT) at K ∈ {1, 3, 5, 10},
-cross-encoder reranking, compression, Map Re-rank and Reciprocal RAG, with accuracy, token and latency
-accounting.
+## Use of AI tools
+
+AI tools assisted with writing the code and with grading the relevance labels.
 
 ## Citation
 
 ```bibtex
 @inproceedings{jain2026retrieval,
   title     = {Does Retrieval Configuration Matter for Medical {QA}? A Controlled Retrieval-Stage Study of {RAG} on {MedQA-USMLE}},
-  author    = {Jain, Arunika},
-  booktitle = {IEEE NICE--TEAS ASIA 2026 (submitted)},
+  author    = {Jain, Arunika and Singh, Ishanika and Hasanpuri, Vijay},
+  booktitle = {IEEE NICE--TEAS ASIA 2026 (under review)},
   year      = {2026}
 }
 ```
+
+## Licence
+
+Code: [MIT](LICENSE). The MedQA dataset and textbooks have their own terms.

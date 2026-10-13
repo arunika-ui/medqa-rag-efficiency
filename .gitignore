@@ -1,6 +1,16 @@
+# Data is never committed (MedQA research licence)
+data/
+data_clean/
+*.npy
+*.npz
+*chunks*.jsonl
+chunks/
+*.faiss
+*.index
+
+# Python
 __pycache__/
 *.pyc
-.pytest_cache/
-.cache/
-data/
+.ipynb_checkpoints/
+.venv/
 .env

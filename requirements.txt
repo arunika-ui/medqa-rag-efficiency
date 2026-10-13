@@ -1,9 +1,5 @@
-numpy>=1.26
-pandas>=2.1
-scipy>=1.11
-scikit-learn>=1.4
-faiss-cpu>=1.8
-bm25s>=0.2
-datasets>=2.19,<4
-matplotlib>=3.8
-pytest>=8.0
+numpy
+scipy
+pandas
+scikit-learn
+faiss-cpu
