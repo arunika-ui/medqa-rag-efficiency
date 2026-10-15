@@ -1,6 +1,0 @@
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Downloading data:   0%|          | 0/18 [00:00<?, ?files/s]Downloading data:  89%|████████▉ | 16/18 [00:05<00:00,  2.78files/s]Downloading data: 100%|██████████| 18/18 [00:06<00:00,  2.85files/s]
-Generating train split:   0%|          | 0/125847 [00:00<?, ? examples/s]Generating train split:  41%|████      | 51013/125847 [00:00<00:00, 496935.51 examples/s]Generating train split:  93%|█████████▎| 116508/125847 [00:00<00:00, 542828.23 examples/s]Generating train split: 100%|██████████| 125847/125847 [00:00<00:00, 531068.41 examples/s]
-Generating train split:   0%|          | 0/10178 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 10178/10178 [00:00<00:00, 461494.50 examples/s]
-Generating test split:   0%|          | 0/1273 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1273/1273 [00:00<00:00, 298337.65 examples/s]
-Generating validation split:   0%|          | 0/1272 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1272/1272 [00:00<00:00, 311450.95 examples/s]
